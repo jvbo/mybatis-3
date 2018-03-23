@@ -30,6 +30,7 @@ import org.apache.ibatis.transaction.Transaction;
 /**
  * @author Clinton Begin
  */
+// TODO @see #SqlSession 提供操作数据库的方法,但和数据库操作有关的职责都会委托给 #Executor
 public interface Executor {
 
   ResultHandler NO_RESULT_HANDLER = null;

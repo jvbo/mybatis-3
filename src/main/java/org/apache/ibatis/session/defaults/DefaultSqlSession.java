@@ -49,6 +49,7 @@ import org.apache.ibatis.session.SqlSession;
 public class DefaultSqlSession implements SqlSession {
 
   private final Configuration configuration;
+  // TODO @see #SqlSession 提供操作数据库的方法,但和数据库操作有关的职责都会委托给 #Executor
   private final Executor executor;
 
   private final boolean autoCommit;

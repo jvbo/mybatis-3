@@ -25,6 +25,7 @@ import org.apache.ibatis.cache.CacheException;
 /**
  * @author Clinton Begin
  */
+// TODO 内部持有HashMap, 缓存操作实际是对HashMap的操作
 public class PerpetualCache implements Cache {
 
   private final String id;

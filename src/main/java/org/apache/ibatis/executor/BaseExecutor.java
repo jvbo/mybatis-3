@@ -47,6 +47,7 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
 /**
  * @author Clinton Begin
  */
+// TODO 实现 #Executor 接口的抽象类,定义若干抽象方法,在执行的时候,把具体操作委托给子类进行执行
 public abstract class BaseExecutor implements Executor {
 
   private static final Log log = LogFactory.getLog(BaseExecutor.class);
@@ -55,7 +56,7 @@ public abstract class BaseExecutor implements Executor {
   protected Executor wrapper;
 
   protected ConcurrentLinkedQueue<DeferredLoad> deferredLoads;
-  protected PerpetualCache localCache;
+  protected PerpetualCache localCache;// 本地缓存相关 #PerpetualCache 对 #Cache 最基本的实现
   protected PerpetualCache localOutputParameterCache;
   protected Configuration configuration;
 
@@ -113,6 +114,7 @@ public abstract class BaseExecutor implements Executor {
     if (closed) {
       throw new ExecutorException("Executor was closed.");
     }
+    // 每次执行update前 清空 #PerpetualCache.localCache
     clearLocalCache();
     return doUpdate(ms, parameter);
   }
@@ -129,9 +131,11 @@ public abstract class BaseExecutor implements Executor {
     return doFlushStatements(isRollBack);
   }
 
+  // TODO 查询
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
     BoundSql boundSql = ms.getBoundSql(parameter);
+    // 根据传入参数创建 #CacheKey
     CacheKey key = createCacheKey(ms, parameter, rowBounds, boundSql);
     return query(ms, parameter, rowBounds, resultHandler, key, boundSql);
  }
@@ -164,6 +168,9 @@ public abstract class BaseExecutor implements Executor {
       }
       // issue #601
       deferredLoads.clear();
+      // TODO 以及缓存是否 #LocalCacheScope.STATEMENT 级别,是的话清空缓存
+      // #LocalCacheScope.STATEMENT 级别的一级缓存无法共享 #PerpetualCache.localCache
+      // 这里在多个 #SqlSession 或者分布式环境下,将缓存级别设置为 #LocalCacheScope.STATEMENT 避免脏读
       if (configuration.getLocalCacheScope() == LocalCacheScope.STATEMENT) {
         // issue #482
         clearLocalCache();
@@ -191,11 +198,14 @@ public abstract class BaseExecutor implements Executor {
     }
   }
 
+  // TODO 创建 #CacheKey
   @Override
   public CacheKey createCacheKey(MappedStatement ms, Object parameterObject, RowBounds rowBounds, BoundSql boundSql) {
     if (closed) {
       throw new ExecutorException("Executor was closed.");
     }
+    // #MappedStatement Id + #RowBounds.offset + #RowBounds.limit + #BoundSql.sql + #BoundSql.parameterMappings 
+    // 5个参数,都相同的话最终执行的sql也相同
     CacheKey cacheKey = new CacheKey();
     cacheKey.update(ms.getId());
     cacheKey.update(rowBounds.getOffset());
@@ -218,6 +228,7 @@ public abstract class BaseExecutor implements Executor {
           MetaObject metaObject = configuration.newMetaObject(parameterObject);
           value = metaObject.getValue(propertyName);
         }
+        // 修改sql中传的参数
         cacheKey.update(value);
       }
     }
@@ -301,7 +312,8 @@ public abstract class BaseExecutor implements Executor {
   protected void applyTransactionTimeout(Statement statement) throws SQLException {
     StatementUtil.applyTransactionTimeout(statement, statement.getQueryTimeout(), transaction.getTimeout());
   }
-
+  
+  // TODO 处理存储过程
   private void handleLocallyCachedOutputParameters(MappedStatement ms, CacheKey key, Object parameter, BoundSql boundSql) {
     if (ms.getStatementType() == StatementType.CALLABLE) {
       final Object cachedParameter = localOutputParameterCache.getObject(key);

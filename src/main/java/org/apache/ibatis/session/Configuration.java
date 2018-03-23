@@ -564,6 +564,7 @@ public class Configuration {
     return newExecutor(transaction, defaultExecutorType);
   }
 
+  // TODO 创建 #SqlSession 委托的 #Executor
   public Executor newExecutor(Transaction transaction, ExecutorType executorType) {
     executorType = executorType == null ? defaultExecutorType : executorType;
     executorType = executorType == null ? ExecutorType.SIMPLE : executorType;
@@ -575,6 +576,7 @@ public class Configuration {
     } else {
       executor = new SimpleExecutor(this, transaction);
     }
+    // 如果二级缓存开启的话,使用 #CachingExecutor 装饰 #BaseExecutor 的子类
     if (cacheEnabled) {
       executor = new CachingExecutor(executor);
     }

@@ -36,6 +36,7 @@ import org.apache.ibatis.transaction.Transaction;
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
+// TODO 实现二级缓存的查询和写入
 public class CachingExecutor implements Executor {
 
   private final Executor delegate;
@@ -161,6 +162,7 @@ public class CachingExecutor implements Executor {
     delegate.clearLocalCache();
   }
 
+  // TODO 判断是否需要刷新缓存
   private void flushCacheIfRequired(MappedStatement ms) {
     Cache cache = ms.getCache();
     if (cache != null && ms.isFlushCacheRequired()) {      

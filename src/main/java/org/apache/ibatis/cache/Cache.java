@@ -38,7 +38,7 @@ import java.util.concurrent.locks.ReadWriteLock;
  *
  * @author Clinton Begin
  */
-
+// TODO 提供了和缓存相关的最基本的操作
 public interface Cache {
 
   /**
